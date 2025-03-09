@@ -3,6 +3,9 @@
  * Handles user registration, login, and guest mode
  */
 
+// Create a global authentication module
+window.gameAuth = window.gameAuth || {};
+
 // Base API URL
 const API_BASE_URL = '/api';
 
@@ -25,7 +28,7 @@ let authError;
  * Initialize the authentication module
  */
 function initAuth() {
-    // Check for existing authentication
+    // Check for existing authentication FIRST - this must happen before anything else
     checkAuthState();
 
     // Create auth modal if it doesn't exist
@@ -51,10 +54,22 @@ function initAuth() {
     guestForm.addEventListener('submit', handleGuestMode);
     document.getElementById('guest-mode-btn').addEventListener('click', () => showAuthTab('guest'));
 
-    // Show auth modal on page load if not authenticated
-    if (!currentUser && !isGuest) {
+    // Show auth modal on page load ONLY if not authenticated
+    // We check both currentUser and isGuest to determine if authentication exists
+    if (!isAuthenticated()) {
+        console.log('No authentication found, showing login modal');
         showAuthModal();
+    } else {
+        console.log('User is authenticated:', isGuest ? `Guest: ${guestTag}` : `User: ${currentUser.username}`);
     }
+
+    // Export methods to global gameAuth object
+    window.gameAuth.isAuthenticated = isAuthenticated;
+    window.gameAuth.getCurrentUserInfo = getCurrentUserInfo;
+    window.gameAuth.submitScore = submitScore;
+    window.gameAuth.showAuthModal = showAuthModal;
+    window.gameAuth.logout = handleLogout;
+    window.gameAuth.switchUser = handleSwitchUser;
 }
 
 /**
@@ -248,7 +263,7 @@ async function handleLogin(event) {
             email: data.email
         }));
 
-        // Update auth state
+        // Update current state
         currentUser = {
             id: data._id,
             username: data.username,
@@ -263,9 +278,9 @@ async function handleLogin(event) {
         // Update UI
         updateAuthUI();
 
-        // Reload page if needed
-        // window.location.reload();
+        console.log('Login successful:', currentUser.username);
     } catch (error) {
+        console.error('Login error:', error);
         showError(error.message);
     }
 }
@@ -336,32 +351,22 @@ async function handleGuestMode(event) {
     const guestTagInput = document.getElementById('guest-tag').value;
 
     if (guestTagInput.length < 3) {
-        showError('Guest tag must be at least 3 characters long');
+        showError('Name tag must be at least 3 characters long');
         return;
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/auth/guest`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ guestTag: guestTagInput })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Guest validation failed');
-        }
-
-        // Save guest data
+        // Save guest tag
         localStorage.setItem('guestTag', guestTagInput);
 
-        // Update auth state
+        // Update current state
         currentUser = null;
         isGuest = true;
         guestTag = guestTagInput;
+
+        // Clear any existing token
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
 
         // Hide modal
         hideAuthModal();
@@ -369,9 +374,9 @@ async function handleGuestMode(event) {
         // Update UI
         updateAuthUI();
 
-        // Reload page if needed
-        // window.location.reload();
+        console.log('Guest mode activated:', guestTag);
     } catch (error) {
+        console.error('Guest mode error:', error);
         showError(error.message);
     }
 }
@@ -384,21 +389,30 @@ function checkAuthState() {
     const user = localStorage.getItem('user');
     const storedGuestTag = localStorage.getItem('guestTag');
 
+    console.log('Checking auth state:', {
+        hasToken: !!token,
+        hasUser: !!user,
+        guestTag: storedGuestTag
+    });
+
     if (token && user) {
         // User is logged in
         currentUser = JSON.parse(user);
         isGuest = false;
         guestTag = '';
+        console.log('Found logged in user:', currentUser.username);
     } else if (storedGuestTag) {
         // User is a guest
         currentUser = null;
         isGuest = true;
         guestTag = storedGuestTag;
+        console.log('Found guest user:', guestTag);
     } else {
         // Not authenticated
         currentUser = null;
         isGuest = false;
         guestTag = '';
+        console.log('No authentication found');
     }
 
     // Update UI based on auth state
@@ -488,29 +502,29 @@ function handleSwitchUser() {
 }
 
 /**
- * Get current user or guest information for score submission
+ * Get current user information
+ * @returns {Object|null} User information object or null
  */
 function getCurrentUserInfo() {
     if (currentUser) {
         return {
-            userId: currentUser.id,
+            ...currentUser,
             isGuest: false
         };
     } else if (isGuest) {
         return {
-            guestTag: guestTag,
+            username: guestTag,
             isGuest: true
         };
-    } else {
-        return null;
     }
+    return null;
 }
 
 /**
- * Check if user is authenticated (as user or guest)
+ * Check if the user is authenticated (either as a user or guest)
  */
 function isAuthenticated() {
-    return currentUser !== null || isGuest;
+    return currentUser !== null || isGuest === true;
 }
 
 /**
@@ -560,12 +574,4 @@ async function submitScore(gameId, score, duration) {
 }
 
 // Initialize auth when the document is loaded
-document.addEventListener('DOMContentLoaded', initAuth);
-
-// Export functions for use in games
-window.gameAuth = {
-    isAuthenticated,
-    getCurrentUserInfo,
-    submitScore,
-    showAuthModal
-}; 
+document.addEventListener('DOMContentLoaded', initAuth); 

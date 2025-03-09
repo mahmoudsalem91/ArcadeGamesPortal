@@ -3,9 +3,21 @@
  * Handles displaying user information and navigation
  */
 
+// Create a module to avoid global namespace pollution
+const headerModule = {
+  initialized: false
+};
+
 // Create and insert header
 function createHeader(pageTitle) {
-    const headerHTML = `
+  // Only create header once
+  if (headerModule.initialized) {
+    console.log('Header already initialized');
+    return;
+  }
+
+  console.log('Creating game header');
+  const headerHTML = `
     <header class="game-header">
       <div class="header-container">
         <div class="logo">
@@ -20,9 +32,9 @@ function createHeader(pageTitle) {
     </header>
   `;
 
-    // Create header styles if not already in the document
-    if (!document.getElementById('header-styles')) {
-        const headerStyles = `
+  // Create header styles if not already in the document
+  if (!document.getElementById('header-styles')) {
+    const headerStyles = `
       <style id="header-styles">
         .game-header {
           background-color: #0f1428;
@@ -107,16 +119,19 @@ function createHeader(pageTitle) {
       </style>
     `;
 
-        document.head.insertAdjacentHTML('beforeend', headerStyles);
-    }
+    document.head.insertAdjacentHTML('beforeend', headerStyles);
+  }
 
-    // Insert header at the beginning of the body
-    document.body.insertAdjacentHTML('afterbegin', headerHTML);
+  // Insert header at the beginning of the body
+  document.body.insertAdjacentHTML('afterbegin', headerHTML);
+
+  // Mark as initialized
+  headerModule.initialized = true;
 }
 
 // Initialize header when document is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Get page title from the document title
-    const pageTitle = document.title;
-    createHeader(pageTitle);
+  // Get page title from the document title
+  const pageTitle = document.title.replace(' - Arcade Portal', '').replace('Arcade Games Portal', 'Home');
+  createHeader(pageTitle);
 }); 

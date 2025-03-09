@@ -105,12 +105,14 @@ class GameFramework {
     }
 
     /**
-     * Check if user is authenticated
+     * Check authentication state
      */
     checkAuthState() {
         // Check if gameAuth is available (from auth.js)
         if (window.gameAuth) {
+            console.log('Checking game authentication state');
             this.isAuthenticated = window.gameAuth.isAuthenticated();
+            console.log('Authentication status:', this.isAuthenticated);
 
             // If authentication is required and user is not authenticated
             if (this.options.requireAuth && !this.isAuthenticated) {
@@ -133,10 +135,12 @@ class GameFramework {
 
         if (window.gameAuth) {
             const userInfo = window.gameAuth.getCurrentUserInfo();
+            console.log('Player info:', userInfo);
 
             if (userInfo) {
                 if (userInfo.isGuest) {
-                    this.playerInfo.innerHTML = `<span>Playing as: <strong>${userInfo.guestTag}</strong></span>`;
+                    // Updated property name to match getCurrentUserInfo
+                    this.playerInfo.innerHTML = `<span>Playing as: <strong>${userInfo.username}</strong></span>`;
                 } else {
                     this.playerInfo.innerHTML = `<span>Player: <strong>${userInfo.username || 'User'}</strong></span>`;
                 }
@@ -151,7 +155,11 @@ class GameFramework {
                     const loginButton = document.getElementById('login-button');
                     if (loginButton) {
                         loginButton.addEventListener('click', () => {
-                            window.gameAuth.showAuthModal();
+                            if (window.gameAuth && window.gameAuth.showAuthModal) {
+                                window.gameAuth.showAuthModal();
+                            } else {
+                                console.error('showAuthModal not available');
+                            }
                         });
                     }
                 }, 0);
@@ -200,26 +208,32 @@ class GameFramework {
     }
 
     /**
-     * Submit score to the server
-     * @param {number} score - Final score
-     * @param {number} duration - Game duration in seconds
+     * Submit a score to the leaderboard
      */
     async submitScore(score, duration) {
-        if (window.gameAuth) {
-            try {
-                const result = await window.gameAuth.submitScore(this.gameId, score, duration);
-                if (result) {
-                    console.log('Score submitted successfully');
-                    // Refresh leaderboard
-                    this.fetchLeaderboard();
-                } else {
-                    console.warn('Failed to submit score');
-                }
-            } catch (error) {
-                console.error('Error submitting score:', error);
+        try {
+            if (!window.gameAuth) {
+                console.warn('gameAuth not available. Score will not be saved.');
+                return;
             }
-        } else {
-            console.warn('gameAuth not found. Score submission disabled.');
+
+            console.log(`Submitting score: ${score} for game: ${this.gameId}`);
+
+            // Use the gameAuth method to submit score
+            const result = await window.gameAuth.submitScore(this.gameId, score, duration);
+
+            if (result && result.success) {
+                console.log('Score submitted successfully');
+                // Refresh leaderboard
+                this.fetchLeaderboard();
+                return true;
+            } else {
+                console.warn('Score submission failed or returned no response');
+                return false;
+            }
+        } catch (error) {
+            console.error('Error submitting score:', error);
+            return false;
         }
     }
 
