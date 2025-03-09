@@ -535,7 +535,38 @@
             setTimeout(() => {
                 // First check if gameAuth is available
                 if (!window.gameAuth) {
-                    console.error('gameAuth not found in window object');
+                    console.log('gameAuth not found in window object, checking localStorage directly');
+                    const storedUser = localStorage.getItem('user');
+
+                    if (storedUser) {
+                        console.log('Found user data in localStorage');
+                        let userData;
+
+                        try {
+                            // Try parsing the user data as JSON
+                            if (storedUser.startsWith('{')) {
+                                userData = JSON.parse(storedUser);
+                                console.log('Parsed user data:', userData);
+
+                                // Update sample data with user info
+                                const userProfile = { ...SAMPLE_USER_DATA };
+                                userProfile.username = userData.username || 'User';
+                                userProfile.email = userData.email || 'No email provided';
+                                fetchUserProfile(userProfile);
+                                return;
+                            } else {
+                                // If not JSON, just use as username
+                                const userProfile = { ...SAMPLE_USER_DATA };
+                                userProfile.username = storedUser;
+                                fetchUserProfile(userProfile);
+                                return;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing user data:', e);
+                        }
+                    }
+
+                    // If we reached here, no valid user data was found
                     setupLoginPrompt();
                     return;
                 }
@@ -567,8 +598,43 @@
                         fetchUserProfile(userData);
                     }
                 } else {
-                    console.log('User not authenticated, showing login prompt');
-                    setupLoginPrompt();
+                    // Direct localStorage fallback
+                    const storedUser = localStorage.getItem('user');
+
+                    if (storedUser) {
+                        console.log('Found user data in localStorage (fallback)');
+                        let userData;
+
+                        try {
+                            // Try parsing the user data as JSON
+                            if (storedUser.startsWith('{')) {
+                                userData = JSON.parse(storedUser);
+                                console.log('Parsed user data:', userData);
+
+                                // Update sample data with user info
+                                const userProfile = { ...SAMPLE_USER_DATA };
+                                userProfile.username = userData.username || 'User';
+                                userProfile.email = userData.email || 'No email provided';
+                                fetchUserProfile(userProfile);
+                                return;
+                            } else {
+                                // If not JSON, just use as username
+                                const userProfile = { ...SAMPLE_USER_DATA };
+                                userProfile.username = storedUser;
+                                fetchUserProfile(userProfile);
+                                return;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing user data:', e);
+                        }
+
+                        // If we reached here, no valid user data was found
+                        console.log('User not authenticated, showing login prompt');
+                        setupLoginPrompt();
+                    } else {
+                        console.log('User not authenticated, showing login prompt');
+                        setupLoginPrompt();
+                    }
                 }
             }, 300); // Slightly longer timeout to ensure auth is ready
         }

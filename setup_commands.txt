@@ -2,13 +2,11 @@
 sudo npm install -g pm2
 
 # Copy Apache configuration to the appropriate directory
-sudo cp apache_config.conf /etc/apache2/sites-available/wplabs.conf
+sudo cp apache_config.conf /etc/apache2/sites-available/site-name.conf
 
 # Enable the site configuration
-sudo a2ensite wplabs.conf
+sudo a2ensite site-name.conf
 
-# Disable any conflicting sites (if needed)
-# sudo a2dissite survivalz.conf
 
 # Enable required Apache modules
 sudo a2enmod ssl

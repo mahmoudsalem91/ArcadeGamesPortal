@@ -4,8 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Arcade Games Portal</title>
-    <!-- Direct file includes -->
+    <!-- Add cache-busting parameter -->
     <link rel="stylesheet" href="/css/auth.css" type="text/css">
     <link rel="stylesheet" href="/css/game-framework.css" type="text/css">
     <style>
@@ -21,11 +24,20 @@
             color: #fff;
             min-height: 100vh;
             padding: 20px;
+            overflow-x: hidden;
+            /* Prevent horizontal overflow */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            width: 100%;
         }
 
         header {
@@ -57,6 +69,7 @@
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 20px;
             margin-bottom: 40px;
+            order: 1;
         }
 
         .game-card {
@@ -158,6 +171,7 @@
             color: #8f9bba;
             padding: 20px 0;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
+            order: 3;
         }
 
         footer p {
@@ -184,15 +198,19 @@
             }
         }
 
-        /* Global Leaderboard Styles */
+        /* Global Leaderboard Styles - Fixed version */
         .content-section {
             margin: 40px 0;
             background-color: rgba(15, 20, 40, 0.5);
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            clear: both;
             width: 100%;
+            order: 2;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         .section-title {
@@ -256,192 +274,525 @@
                 font-size: 1.5rem;
             }
         }
+
+        .note {
+            background-color: #f8bc34;
+            color: #0a0e23;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Game header styles (simplified from header.js) */
+        .game-header {
+            background-color: #0f1428;
+            padding: 1rem;
+            border-bottom: 2px solid rgba(248, 188, 52, 0.3);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo a {
+            color: #f8bc34;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .game-title {
+            color: #ffffff;
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .login-btn {
+            background-color: #f8bc34;
+            color: #0a0e23;
+            border: none;
+            border-radius: 5px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            background-color: #ffcf5c;
+            transform: translateY(-2px);
+        }
+
+        /* Auth modal styles */
+        .auth-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .auth-modal {
+            background-color: #0f1428;
+            border: 2px solid #f8bc34;
+            border-radius: 10px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .auth-modal h2 {
+            color: #f8bc34;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .auth-form label {
+            color: #8f9bba;
+            margin-bottom: 5px;
+        }
+
+        .auth-form input {
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #2f3654;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 4px;
+        }
+
+        .auth-form-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .auth-form-buttons button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .auth-submit {
+            background-color: #f8bc34;
+            color: #0a0e23;
+            font-weight: bold;
+        }
+
+        .auth-cancel {
+            background-color: #2f3654;
+            color: white;
+        }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <header>
-            <h1>Arcade Games Portal</h1>
-            <p class="subtitle">Welcome to our collection of classic arcade games. Sign up to track your scores across
-                all games or play as a guest.</p>
-            <div id="user-info"></div>
-        </header>
-
-        <div class="games-grid">
-            <!-- Snake Game -->
-            <div class="game-card">
-                <div class="game-thumbnail">🐍</div>
-                <div class="game-info">
-                    <h3>Snake</h3>
-                    <p>Navigate the snake to eat food and grow longer, but avoid hitting the walls or your own tail!</p>
-                    <div class="game-actions">
-                        <a href="/games/snake" class="play-btn">Play Now</a>
-                        <a href="/games/snake?leaderboard=true" class="leaderboard-btn">Leaderboard</a>
-                    </div>
-                </div>
+    <div class="game-header">
+        <div class="header-container">
+            <div class="logo">
+                <a href="/">Arcade Games Portal</a>
             </div>
-
-            <!-- Pong Game -->
-            <div class="game-card">
-                <div class="game-thumbnail">🏓</div>
-                <div class="game-info">
-                    <h3>Pong</h3>
-                    <p>The classic table tennis game. Control your paddle to bounce the ball and score points against
-                        your opponent.</p>
-                    <div class="game-actions">
-                        <a href="/games/pong" class="play-btn">Play Now</a>
-                        <a href="/games/pong?leaderboard=true" class="leaderboard-btn">Leaderboard</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Brick Breaker Game -->
-            <div class="game-card">
-                <div class="game-thumbnail">🧱</div>
-                <div class="game-info">
-                    <h3>Brick Breaker</h3>
-                    <p>Control the paddle to bounce the ball and break all the bricks. Clear levels as you progress.</p>
-                    <div class="game-actions">
-                        <a href="/games/brick-breaker" class="play-btn">Play Now</a>
-                        <a href="/games/brick-breaker?leaderboard=true" class="leaderboard-btn">Leaderboard</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Flappy Bird -->
-            <div class="game-card">
-                <div class="game-thumbnail">🐦</div>
-                <div class="game-info">
-                    <h3>Flappy Bird</h3>
-                    <p>Navigate the bird through pipes by tapping to flap. See how far you can go without hitting
-                        obstacles.</p>
-                    <div class="game-actions">
-                        <a href="/games/flappy-bird" class="play-btn">Play Now</a>
-                        <a href="/games/flappy-bird?leaderboard=true" class="leaderboard-btn">Leaderboard</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Whack-a-Mole -->
-            <div class="game-card">
-                <div class="game-thumbnail">🔨</div>
-                <div class="game-info">
-                    <h3>Whack-a-Mole</h3>
-                    <p>Quickly tap the moles as they pop up from their holes. See how many you can whack in the time
-                        limit.</p>
-                    <div class="game-actions">
-                        <a href="/games/whack-a-mole" class="play-btn">Play Now</a>
-                        <a href="/games/whack-a-mole?leaderboard=true" class="leaderboard-btn">Leaderboard</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Memory Cards -->
-            <div class="game-card">
-                <div class="game-thumbnail">🃏</div>
-                <div class="game-info">
-                    <h3>Memory Cards</h3>
-                    <p>Test your memory by matching pairs of cards. Find all pairs in the fewest moves possible.</p>
-                    <div class="game-actions">
-                        <a href="/games/memory-cards" class="play-btn">Play Now</a>
-                        <a href="/games/memory-cards?leaderboard=true" class="leaderboard-btn">Leaderboard</a>
-                    </div>
-                </div>
+            <h1 class="game-title">Home</h1>
+            <div class="user-info">
+                <button id="show-auth-btn" class="login-btn">Login / Register</button>
             </div>
         </div>
-
-        <!-- Adding Global Leaderboard Section -->
-        <div class="content-section">
-            <h2 class="section-title">Global Leaderboard</h2>
-            <div class="leaderboard-container">
-                <table class="global-leaderboard">
-                    <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>Player</th>
-                            <th>Game</th>
-                            <th>Score</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody id="global-leaderboard-body">
-                        <!-- Will be populated by JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <footer>
-            <p>Arcade Games Portal © 2025 | <a href="/profile" style="color: #8f9bba;">View Profile</a></p>
-        </footer>
     </div>
 
-    <!-- Direct file includes -->
-    <script src="/js/auth.js" type="application/javascript"></script>
-    <script src="/js/header.js" type="application/javascript"></script>
-    <script>
-        // Sample leaderboard data - would be fetched from API in production
-        const globalLeaderboardData = [
-            { rank: 1, player: "GameMaster", game: "Brick Breaker", score: 2150, date: "2025-03-03" },
-            { rank: 2, player: "PixelPro", game: "Snake", score: 187, date: "2025-03-05" },
-            { rank: 3, player: "ArcadeKing", game: "Flappy Bird", score: 94, date: "2025-03-08" },
-            { rank: 4, player: "RetroGamer", game: "Pong", score: 87, date: "2025-03-07" },
-            { rank: 5, player: "ClassicFan", game: "Whack-a-Mole", score: 76, date: "2025-03-04" }
-        ];
+    <div class="container">
+        <div class="note" style="margin-top: 20px;">
+            CACHE REFRESHED: <span id="current-time"></span>
+        </div>
 
-        // Game icon mapping for leaderboard
-        const gameIcons = {
-            'Snake': '🐍',
-            'Pong': '🏓',
-            'Brick Breaker': '🧱',
-            'Flappy Bird': '🐦',
-            'Whack-a-Mole': '🔨',
-            'Memory Cards': '🃏'
+        <div style="display: flex; flex-direction: column; width: 100%;">
+            <!-- ============= GAMES GRID SECTION FIRST ============= -->
+            <div class="games-grid" style="order: 1;">
+                <!-- Snake Game -->
+                <div class="game-card">
+                    <div class="game-thumbnail">🐍</div>
+                    <div class="game-info">
+                        <h3>Snake</h3>
+                        <p>Navigate the snake to eat food and grow longer, but avoid hitting the walls or your own tail!
+                        </p>
+                        <div class="game-actions">
+                            <a href="/games/snake?v=<?php echo time(); ?>" class="play-btn">Play Now</a>
+                            <a href="/games/snake?leaderboard=true&v=<?php echo time(); ?>"
+                                class="leaderboard-btn">Leaderboard</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pong Game -->
+                <div class="game-card">
+                    <div class="game-thumbnail">🏓</div>
+                    <div class="game-info">
+                        <h3>Pong</h3>
+                        <p>The classic table tennis game. Control your paddle to bounce the ball and score points
+                            against
+                            your opponent.</p>
+                        <div class="game-actions">
+                            <a href="/games/pong?v=<?php echo time(); ?>" class="play-btn">Play Now</a>
+                            <a href="/games/pong?leaderboard=true&v=<?php echo time(); ?>"
+                                class="leaderboard-btn">Leaderboard</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Brick Breaker Game -->
+                <div class="game-card">
+                    <div class="game-thumbnail">🧱</div>
+                    <div class="game-info">
+                        <h3>Brick Breaker</h3>
+                        <p>Control the paddle to bounce the ball and break all the bricks. Clear levels as you progress.
+                        </p>
+                        <div class="game-actions">
+                            <a href="/games/brick-breaker?v=<?php echo time(); ?>" class="play-btn">Play Now</a>
+                            <a href="/games/brick-breaker?leaderboard=true&v=<?php echo time(); ?>"
+                                class="leaderboard-btn">Leaderboard</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Flappy Bird -->
+                <div class="game-card">
+                    <div class="game-thumbnail">🐦</div>
+                    <div class="game-info">
+                        <h3>Flappy Bird</h3>
+                        <p>Navigate the bird through pipes by tapping to flap. See how far you can go without hitting
+                            obstacles.</p>
+                        <div class="game-actions">
+                            <a href="/games/flappy-bird?v=<?php echo time(); ?>" class="play-btn">Play Now</a>
+                            <a href="/games/flappy-bird?leaderboard=true&v=<?php echo time(); ?>"
+                                class="leaderboard-btn">Leaderboard</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Whack-a-Mole -->
+                <div class="game-card">
+                    <div class="game-thumbnail">🔨</div>
+                    <div class="game-info">
+                        <h3>Whack-a-Mole</h3>
+                        <p>Quickly tap the moles as they pop up from their holes. See how many you can whack in the time
+                            limit.</p>
+                        <div class="game-actions">
+                            <a href="/games/whack-a-mole?v=<?php echo time(); ?>" class="play-btn">Play Now</a>
+                            <a href="/games/whack-a-mole?leaderboard=true&v=<?php echo time(); ?>"
+                                class="leaderboard-btn">Leaderboard</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Memory Cards -->
+                <div class="game-card">
+                    <div class="game-thumbnail">🃏</div>
+                    <div class="game-info">
+                        <h3>Memory Cards</h3>
+                        <p>Test your memory by matching pairs of cards. Find all pairs in the fewest moves possible.</p>
+                        <div class="game-actions">
+                            <a href="/games/memory-cards?v=<?php echo time(); ?>" class="play-btn">Play Now</a>
+                            <a href="/games/memory-cards?leaderboard=true&v=<?php echo time(); ?>"
+                                class="leaderboard-btn">Leaderboard</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============= GLOBAL LEADERBOARD SECTION (AFTER games grid) ============= -->
+            <div class="content-section"
+                style="order: 2; display: flex; flex-direction: column; width: 100%; position: relative; overflow: visible;">
+                <h2 class="section-title">Global Leaderboard</h2>
+                <div class="leaderboard-container" style="width: 100%; position: relative; overflow-x: auto;">
+                    <table class="global-leaderboard" style="width: 100%; border-collapse: collapse; margin: 0 auto;">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Game</th>
+                                <th>Score</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-tbody">
+                            <!-- Will be populated dynamically with JS -->
+                            <tr>
+                                <td colspan="5" style="text-align: center;">Loading leaderboard data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <footer style="order: 3;">
+                <p>Arcade Games Portal © 2025 | <a href="/profile?v=<?php echo time(); ?>" style="color: #8f9bba;">View
+                        Profile</a></p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal-overlay" class="auth-modal-overlay">
+        <div class="auth-modal">
+            <h2>Login / Register</h2>
+            <div class="auth-form">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Your username">
+
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Your password">
+
+                <div class="auth-form-buttons">
+                    <button class="auth-submit" id="auth-submit">Login</button>
+                    <button class="auth-cancel" id="auth-cancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- No external JS files, everything inline -->
+    <script>
+        // Display current time to show it's a fresh page
+        document.getElementById('current-time').textContent = new Date().toLocaleString();
+
+        // Game icons mapping
+        const GAME_ICONS = {
+            'snake': '🐍',
+            'pong': '🏓',
+            'brick-breaker': '🧱',
+            'flappy-bird': '🐦',
+            'whack-a-mole': '🔨',
+            'memory-cards': '🃏',
+            'default': '🎮'
         };
 
-        // Populate the global leaderboard
-        document.addEventListener('DOMContentLoaded', () => {
-            populateGlobalLeaderboard();
-        });
+        // Game names mapping
+        const GAME_NAMES = {
+            'snake': 'Snake',
+            'pong': 'Pong',
+            'brick-breaker': 'Brick Breaker',
+            'flappy-bird': 'Flappy Bird',
+            'whack-a-mole': 'Whack-a-Mole',
+            'memory-cards': 'Memory Cards'
+        };
 
-        function populateGlobalLeaderboard() {
-            const tableBody = document.getElementById('global-leaderboard-body');
-            if (!tableBody) return;
+        // Load and display leaderboard data
+        function loadLeaderboardData() {
+            const leaderboardTbody = document.getElementById('leaderboard-tbody');
 
-            globalLeaderboardData.forEach(entry => {
+            // Get current user data
+            const currentUser = localStorage.getItem('user');
+            let username = 'Guest';
+
+            if (currentUser) {
+                // Parse user data if it's JSON
+                if (currentUser.startsWith('{')) {
+                    try {
+                        const userData = JSON.parse(currentUser);
+                        username = userData.username || 'User';
+                    } catch (e) {
+                        console.error("Failed to parse user data:", e);
+                    }
+                } else {
+                    username = currentUser;
+                }
+            }
+
+            // Example of fetching personal scores from localStorage
+            const userScores = localStorage.getItem('scores_' + username);
+            let scoresArray = [];
+
+            // Check for existing scores
+            if (userScores) {
+                try {
+                    scoresArray = JSON.parse(userScores);
+                } catch (e) {
+                    console.error("Failed to parse scores:", e);
+                }
+            }
+
+            // If no scores available, generate demo data
+            if (!scoresArray || scoresArray.length === 0) {
+                // Generate some demo scores for the current user
+                scoresArray = [
+                    { player: username, game: 'snake', score: Math.floor(Math.random() * 100) + 50, date: new Date().toISOString().slice(0, 10) },
+                    { player: username, game: 'pong', score: Math.floor(Math.random() * 50) + 30, date: new Date().toISOString().slice(0, 10) }
+                ];
+
+                // Store the demo scores
+                localStorage.setItem('scores_' + username, JSON.stringify(scoresArray));
+            }
+
+            // Combine with some default scores for demonstration
+            const defaultScores = [
+                { player: 'GameMaster', game: 'brick-breaker', score: 2150, date: '2023-08-15' },
+                { player: 'PixelPro', game: 'snake', score: 187, date: '2023-08-10' },
+                { player: 'ArcadeKing', game: 'flappy-bird', score: 94, date: '2023-08-12' },
+                { player: 'RetroGamer', game: 'pong', score: 87, date: '2023-08-11' },
+                { player: 'ClassicFan', game: 'whack-a-mole', score: 76, date: '2023-08-09' }
+            ];
+
+            // Add the demo scores if the user doesn't have scores
+            const allScores = [...scoresArray, ...defaultScores];
+
+            // Sort scores in descending order
+            allScores.sort((a, b) => b.score - a.score);
+
+            // Clear the leaderboard
+            leaderboardTbody.innerHTML = '';
+
+            // Display the top scores
+            allScores.slice(0, 10).forEach((score, index) => {
                 const row = document.createElement('tr');
 
-                // Rank cell
+                // Highlight the current user's scores
+                if (score.player === username) {
+                    row.style.backgroundColor = 'rgba(248, 188, 52, 0.1)';
+                }
+
+                // Create rank cell
                 const rankCell = document.createElement('td');
                 rankCell.className = 'rank-cell';
-                rankCell.textContent = entry.rank;
+                rankCell.textContent = index + 1;
                 row.appendChild(rankCell);
 
-                // Player cell
+                // Create player cell
                 const playerCell = document.createElement('td');
-                playerCell.textContent = entry.player;
+                playerCell.textContent = score.player;
                 row.appendChild(playerCell);
 
-                // Game cell
+                // Create game cell
                 const gameCell = document.createElement('td');
-                gameCell.innerHTML = `${gameIcons[entry.game] || '🎮'} ${entry.game}`;
+                const gameIcon = GAME_ICONS[score.game] || GAME_ICONS['default'];
+                const gameName = GAME_NAMES[score.game] || score.game;
+                gameCell.textContent = `${gameIcon} ${gameName}`;
                 row.appendChild(gameCell);
 
-                // Score cell
+                // Create score cell
                 const scoreCell = document.createElement('td');
                 scoreCell.className = 'score-cell';
-                scoreCell.textContent = entry.score;
+                scoreCell.textContent = score.score;
                 row.appendChild(scoreCell);
 
-                // Date cell
+                // Create date cell
                 const dateCell = document.createElement('td');
-                dateCell.textContent = entry.date;
+                dateCell.textContent = score.date;
                 row.appendChild(dateCell);
 
-                tableBody.appendChild(row);
+                // Add row to leaderboard
+                leaderboardTbody.appendChild(row);
             });
         }
+
+        // Auth modal functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            // Load leaderboard data when the page loads
+            loadLeaderboardData();
+
+            const showAuthBtn = document.getElementById('show-auth-btn');
+            const authModal = document.getElementById('auth-modal-overlay');
+            const authSubmit = document.getElementById('auth-submit');
+            const authCancel = document.getElementById('auth-cancel');
+
+            if (showAuthBtn && authModal) {
+                // Show auth modal when clicking the login button
+                showAuthBtn.addEventListener('click', function () {
+                    authModal.style.display = 'flex';
+                });
+
+                // Close modal when clicking cancel
+                if (authCancel) {
+                    authCancel.addEventListener('click', function () {
+                        authModal.style.display = 'none';
+                    });
+                }
+
+                // Define functions for showing modal and logging out
+                const showModalFunction = function () {
+                    authModal.style.display = 'flex';
+                };
+
+                const logoutFunction = function () {
+                    localStorage.removeItem('user');
+
+                    // Reload leaderboard after logout
+                    loadLeaderboardData();
+
+                    // Update UI
+                    showAuthBtn.textContent = 'Login / Register';
+
+                    // Switch back to login functionality
+                    showAuthBtn.removeEventListener('click', logoutFunction);
+                    showAuthBtn.addEventListener('click', showModalFunction);
+                };
+
+                // Handle login submission
+                if (authSubmit) {
+                    authSubmit.addEventListener('click', function () {
+                        const username = document.getElementById('username').value;
+                        const password = document.getElementById('password').value;
+
+                        // Simple demo login
+                        if (username && password) {
+                            // Mock successful login
+                            localStorage.setItem('user', username);
+                            showAuthBtn.textContent = 'Logout (' + username + ')';
+                            authModal.style.display = 'none';
+
+                            // Reload leaderboard with the new user data
+                            loadLeaderboardData();
+
+                            // Change login button click behavior to logout
+                            showAuthBtn.removeEventListener('click', showModalFunction);
+                            showAuthBtn.addEventListener('click', logoutFunction);
+                        } else {
+                            alert('Please enter both username and password');
+                        }
+                    });
+                }
+
+                // Check if user is already logged in
+                const user = localStorage.getItem('user');
+                if (user) {
+                    // Check if user data is a JSON object or simple string
+                    let username = user;
+
+                    // If user is stored as JSON, parse it and extract username
+                    if (user.startsWith('{')) {
+                        try {
+                            const userData = JSON.parse(user);
+                            username = userData.username || user;
+                        } catch (e) {
+                            console.error("Failed to parse user data:", e);
+                        }
+                    }
+
+                    showAuthBtn.textContent = 'Logout (' + username + ')';
+
+                    // Add logout functionality with defined function
+                    showAuthBtn.removeEventListener('click', showModalFunction);
+                    showAuthBtn.addEventListener('click', logoutFunction);
+                }
+            }
+        });
     </script>
 </body>
 

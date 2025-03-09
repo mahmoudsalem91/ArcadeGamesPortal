@@ -75,11 +75,22 @@ This is an arcade gaming portal that allows users to play various retro-style ga
 - Request nametag entry before game starts or when submitting a score
 - Associate scores with the guest nametag
 - Display nametag on leaderboards
+- Store game scores in localStorage with nametag prefix
+- Highlight guest scores in the global leaderboard
 
 ### For Registered Users
 - Automatically associate scores with user account
 - Track performance across multiple game sessions
 - Provide history and statistics
+- Store game scores in localStorage with username prefix
+- Highlight user scores in the global leaderboard
+
+### Score Implementation
+- Scores are stored in localStorage using format: `scores_{username}`
+- Each game updates the user's scores array with new achievements
+- Scores include game type, score value, player name, and date
+- Leaderboard displays combined data from all users
+- Special styling highlights the current user's scores
 
 ## Project Structure
 
