@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pong Game - Arcade Portal</title>
+    <!-- Direct file includes -->
+    <link rel="stylesheet" href="/css/auth.css" type="text/css">
+    <link rel="stylesheet" href="/css/game-framework.css" type="text/css">
+    <style>
+        /* Game-specific styles */
+        #game-canvas {
+            display: block;
+            background-color: #0f1428;
+            border: 2px solid #333;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        #game-controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .control-btn {
+            background-color: #2f3654;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            margin: 0 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .control-btn:hover {
+            background-color: #3f4674;
+        }
+
+        .touch-controls {
+            display: none;
+            /* Hidden by default, shown on touch devices */
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .touch-controls .control-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .touch-btn {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(47, 54, 84, 0.7);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+
+        .touch-btn:active {
+            background-color: rgba(63, 70, 116, 0.8);
+            transform: scale(0.95);
+        }
+
+        .game-instructions {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 15px;
+            background-color: rgba(15, 20, 40, 0.5);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .game-instructions h3 {
+            color: #f8bc34;
+            margin-bottom: 10px;
+        }
+
+        .game-instructions p {
+            color: #a9b3d2;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .game-instructions kbd {
+            background-color: #2f3654;
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin: 0 3px;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 10px;
+            }
+
+            .touch-controls {
+                display: block;
+            }
+
+            .keyboard-instructions {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="game-title">Pong</h1>
+            <div id="player-info" class="player-info">
+                <!-- Will be populated by game framework -->
+            </div>
+        </div>
+
+        <div id="game-area" class="game-area">
+            <canvas id="game-canvas" width="640" height="480"></canvas>
+
+            <div id="game-controls" class="game-controls">
+                <button id="start-btn" class="control-btn">Start Game</button>
+                <button id="pause-btn" class="control-btn" disabled>Pause</button>
+            </div>
+
+            <div class="touch-controls">
+                <div class="control-row">
+                    <div id="up-btn" class="touch-btn">↑</div>
+                </div>
+                <div class="control-row">
+                    <div id="down-btn" class="touch-btn">↓</div>
+                </div>
+            </div>
+
+            <div class="game-instructions">
+                <h3>How to Play</h3>
+                <p class="keyboard-instructions">Use <kbd>↑</kbd> and <kbd>↓</kbd> arrow keys to move your paddle. Hit
+                    the ball past the AI's paddle to score!</p>
+                <p class="touch-instructions">Use the arrow buttons to move your paddle. Hit the ball past the AI's
+                    paddle to score!</p>
+                <p>Try to beat the AI by scoring 10 points first!</p>
+            </div>
+
+            <!-- Score display -->
+            <div id="score-display" class="score-display">
+                <span>Score: <span id="current-score">0</span></span>
+                <span>Time: <span id="game-time">0:00</span></span>
+            </div>
+
+            <!-- Leaderboard will be added by game framework -->
+            <div id="leaderboard-container" class="leaderboard-container"></div>
+        </div>
+    </div>
+
+    <!-- Direct file includes -->
+    <script src="/js/auth.js" type="application/javascript"></script>
+    <script src="/js/header.js" type="application/javascript"></script>
+    <script src="/js/game-framework.js" type="application/javascript"></script>
+
+    <!-- Game Script -->
+    <script>
+        class PongGame {
+            constructor() {
+                // Game elements
+                this.canvas = document.getElementById('game-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.startBtn = document.getElementById('start-btn');
+                this.pauseBtn = document.getElementById('pause-btn');
+                this.scoreDisplay = document.getElementById('current-score');
+                this.timeDisplay = document.getElementById('game-time');
+                this.upBtn = document.getElementById('up-btn');
+                this.downBtn = document.getElementById('down-btn');
+
+                // Game state
+                this.score = 0;
+                this.gameTime = 0;
+                this.isRunning = false;
+                this.isPaused = false;
+                this.gameInterval = null;
+                this.gameTimer = null;
+                this.frameCount = 0;
+                this.lastTime = 0;
+
+                // Game objects
+                this.paddleHeight = 80;
+                this.paddleWidth = 10;
+                this.paddleSpeed = 5;
+                this.paddle = {
+                    x: 20,
+                    y: this.canvas.height / 2 - this.paddleHeight / 2,
+                    width: this.paddleWidth,
+                    height: this.paddleHeight,
+                    dy: 0 // Paddle movement direction
+                };
+
+                this.aiPaddle = {
+                    x: this.canvas.width - 20 - this.paddleWidth,
+                    y: this.canvas.height / 2 - this.paddleHeight / 2,
+                    width: this.paddleWidth,
+                    height: this.paddleHeight,
+                    speed: 3, // AI paddle speed (slower than player)
+                };
+
+                this.ballRadius = 8;
+                this.ball = {
+                    x: this.canvas.width / 2,
+                    y: this.canvas.height / 2,
+                    dx: 5, // X velocity
+                    dy: 3, // Y velocity
+                    radius: this.ballRadius
+                };
+
+                // Input state
+                this.keys = {
+                    up: false,
+                    down: false
+                };
+
+                // Bind methods
+                this.handleKeydown = this.handleKeydown.bind(this);
+                this.handleKeyup = this.handleKeyup.bind(this);
+                this.startGame = this.startGame.bind(this);
+                this.pauseGame = this.pauseGame.bind(this);
+                this.resetGame = this.resetGame.bind(this);
+                this.gameLoop = this.gameLoop.bind(this);
+                this.updateTimer = this.updateTimer.bind(this);
+
+                // Initialize game
+                this.initGame();
+
+                // Initialize game framework
+                this.gameFramework = new GameFramework('pong', {
+                    highScoreLimit: 10,
+                    requireAuth: false
+                });
+            }
+
+            /**
+             * Initialize the game
+             */
+            initGame() {
+                // Set up event listeners
+                window.addEventListener('keydown', this.handleKeydown);
+                window.addEventListener('keyup', this.handleKeyup);
+                this.startBtn.addEventListener('click', this.startGame);
+                this.pauseBtn.addEventListener('click', this.pauseGame);
+
+                // Touch controls
+                if (this.upBtn) this.upBtn.addEventListener('touchstart', () => { this.keys.up = true; });
+                if (this.upBtn) this.upBtn.addEventListener('touchend', () => { this.keys.up = false; });
+                if (this.downBtn) this.downBtn.addEventListener('touchstart', () => { this.keys.down = true; });
+                if (this.downBtn) this.downBtn.addEventListener('touchend', () => { this.keys.down = false; });
+
+                // Mouse controls for desktop
+                if (this.upBtn) this.upBtn.addEventListener('mousedown', () => { this.keys.up = true; });
+                if (this.upBtn) this.upBtn.addEventListener('mouseup', () => { this.keys.up = false; });
+                if (this.upBtn) this.upBtn.addEventListener('mouseleave', () => { this.keys.up = false; });
+                if (this.downBtn) this.downBtn.addEventListener('mousedown', () => { this.keys.down = true; });
+                if (this.downBtn) this.downBtn.addEventListener('mouseup', () => { this.keys.down = false; });
+                if (this.downBtn) this.downBtn.addEventListener('mouseleave', () => { this.keys.down = false; });
+
+                // Initial render
+                this.resetGame();
+                this.drawGame();
+            }
+
+            /**
+             * Handle keydown events
+             */
+            handleKeydown(e) {
+                if (e.key === 'ArrowUp' || e.key === 'Up') {
+                    this.keys.up = true;
+                } else if (e.key === 'ArrowDown' || e.key === 'Down') {
+                    this.keys.down = true;
+                } else if (e.key === ' ' || e.key === 'Spacebar') {
+                    // Toggle pause/play with spacebar
+                    if (this.isRunning) {
+                        if (this.isPaused) {
+                            this.resumeGame();
+                        } else {
+                            this.pauseGame();
+                        }
+                    } else {
+                        this.startGame();
+                    }
+                }
+            }
+
+            /**
+             * Handle keyup events
+             */
+            handleKeyup(e) {
+                if (e.key === 'ArrowUp' || e.key === 'Up') {
+                    this.keys.up = false;
+                } else if (e.key === 'ArrowDown' || e.key === 'Down') {
+                    this.keys.down = false;
+                }
+            }
+
+            /**
+             * Start the game
+             */
+            startGame() {
+                if (this.isRunning) return;
+
+                this.isRunning = true;
+                this.isPaused = false;
+                this.resetGame();
+
+                // Start animation loop
+                this.lastTime = performance.now();
+                requestAnimationFrame(this.gameLoop);
+
+                // Start timer
+                this.gameTime = 0;
+                this.gameTimer = setInterval(this.updateTimer, 1000);
+
+                // Update UI
+                this.startBtn.disabled = true;
+                this.pauseBtn.disabled = false;
+
+                // Notify game framework
+                if (this.gameFramework) {
+                    this.gameFramework.startGame();
+                }
+            }
+
+            /**
+             * Pause the game
+             */
+            pauseGame() {
+                if (!this.isRunning || this.isPaused) return;
+
+                this.isPaused = true;
+                clearInterval(this.gameTimer);
+
+                // Update UI
+                this.pauseBtn.textContent = 'Resume';
+
+                // Show pause message
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                this.ctx.font = '30px Arial';
+                this.ctx.fillStyle = '#FFFFFF';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('Game Paused', this.canvas.width / 2, this.canvas.height / 2);
+                this.ctx.font = '20px Arial';
+                this.ctx.fillText('Press Space or click Resume to continue', this.canvas.width / 2, this.canvas.height / 2 + 40);
+            }
+
+            /**
+             * Resume the game
+             */
+            resumeGame() {
+                if (!this.isRunning || !this.isPaused) return;
+
+                this.isPaused = false;
+                this.gameTimer = setInterval(this.updateTimer, 1000);
+                this.lastTime = performance.now();
+                requestAnimationFrame(this.gameLoop);
+
+                // Update UI
+                this.pauseBtn.textContent = 'Pause';
+            }
+
+            /**
+             * Reset the game to initial state
+             */
+            resetGame() {
+                this.score = 0;
+                this.gameTime = 0;
+                this.paddle = {
+                    x: 20,
+                    y: this.canvas.height / 2 - this.paddleHeight / 2,
+                    width: this.paddleWidth,
+                    height: this.paddleHeight,
+                    dy: 0
+                };
+                this.aiPaddle = {
+                    x: this.canvas.width - 20 - this.paddleWidth,
+                    y: this.canvas.height / 2 - this.paddleHeight / 2,
+                    width: this.paddleWidth,
+                    height: this.paddleHeight,
+                    speed: 3,
+                };
+                this.ball = {
+                    x: this.canvas.width / 2,
+                    y: this.canvas.height / 2,
+                    dx: 5,
+                    dy: 3,
+                    radius: this.ballRadius
+                };
+
+                // Flip direction randomly
+                if (Math.random() > 0.5) {
+                    this.ball.dx *= -1;
+                }
+                if (Math.random() > 0.5) {
+                    this.ball.dy *= -1;
+                }
+
+                // Update UI
+                this.updateScore();
+                this.updateTimer();
+                this.pauseBtn.textContent = 'Pause';
+            }
+
+            /**
+             * Game loop
+             */
+            gameLoop(timestamp) {
+                if (!this.isRunning || this.isPaused) return;
+
+                // Calculate delta time
+                const deltaTime = timestamp - this.lastTime;
+                this.lastTime = timestamp;
+
+                // Clear canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Update game state
+                this.update(deltaTime);
+
+                // Draw game
+                this.drawGame();
+
+                // Continue loop
+                requestAnimationFrame(this.gameLoop);
+            }
+
+            /**
+             * Update game state
+             */
+            update(deltaTime) {
+                // Move player paddle based on input
+                if (this.keys.up) {
+                    this.paddle.y = Math.max(0, this.paddle.y - this.paddleSpeed);
+                }
+                if (this.keys.down) {
+                    this.paddle.y = Math.min(this.canvas.height - this.paddle.height, this.paddle.y + this.paddleSpeed);
+                }
+
+                // Move AI paddle
+                // Simple AI: follow the ball
+                const aiPaddleCenter = this.aiPaddle.y + this.aiPaddle.height / 2;
+                const ballY = this.ball.y;
+
+                // Add some "thinking" delay to make AI beatable
+                if (aiPaddleCenter < ballY - 10) {
+                    this.aiPaddle.y += this.aiPaddle.speed;
+                } else if (aiPaddleCenter > ballY + 10) {
+                    this.aiPaddle.y -= this.aiPaddle.speed;
+                }
+
+                // Keep AI paddle within bounds
+                this.aiPaddle.y = Math.max(0, Math.min(this.canvas.height - this.aiPaddle.height, this.aiPaddle.y));
+
+                // Move ball
+                this.ball.x += this.ball.dx;
+                this.ball.y += this.ball.dy;
+
+                // Ball collision with top and bottom walls
+                if (this.ball.y - this.ball.radius < 0 || this.ball.y + this.ball.radius > this.canvas.height) {
+                    this.ball.dy *= -1;
+                }
+
+                // Ball collision with player paddle
+                if (
+                    this.ball.x - this.ball.radius < this.paddle.x + this.paddle.width &&
+                    this.ball.x - this.ball.radius > this.paddle.x &&
+                    this.ball.y > this.paddle.y &&
+                    this.ball.y < this.paddle.y + this.paddle.height
+                ) {
+                    // Calculate deflection angle based on where the ball hits the paddle
+                    const hitPosition = (this.ball.y - (this.paddle.y + this.paddle.height / 2)) / (this.paddle.height / 2);
+                    const angle = hitPosition * Math.PI / 4; // Max 45 degree angle
+
+                    const speed = Math.sqrt(this.ball.dx * this.ball.dx + this.ball.dy * this.ball.dy);
+                    this.ball.dx = Math.abs(speed * Math.cos(angle)); // Always go right after hit
+                    this.ball.dy = speed * Math.sin(angle);
+                }
+
+                // Ball collision with AI paddle
+                if (
+                    this.ball.x + this.ball.radius > this.aiPaddle.x &&
+                    this.ball.x + this.ball.radius < this.aiPaddle.x + this.aiPaddle.width &&
+                    this.ball.y > this.aiPaddle.y &&
+                    this.ball.y < this.aiPaddle.y + this.aiPaddle.height
+                ) {
+                    // Calculate deflection angle based on where the ball hits the paddle
+                    const hitPosition = (this.ball.y - (this.aiPaddle.y + this.aiPaddle.height / 2)) / (this.aiPaddle.height / 2);
+                    const angle = hitPosition * Math.PI / 4; // Max 45 degree angle
+
+                    const speed = Math.sqrt(this.ball.dx * this.ball.dx + this.ball.dy * this.ball.dy);
+                    this.ball.dx = -Math.abs(speed * Math.cos(angle)); // Always go left after hit
+                    this.ball.dy = speed * Math.sin(angle);
+                }
+
+                // Player scores
+                if (this.ball.x > this.canvas.width) {
+                    this.score++;
+                    this.updateScore();
+                    this.resetBall();
+
+                    // Increase AI difficulty every 3 points
+                    if (this.score % 3 === 0) {
+                        this.aiPaddle.speed = Math.min(6, this.aiPaddle.speed + 0.5);
+                    }
+
+                    // Check for win condition
+                    if (this.score >= 10) {
+                        this.endGame();
+                    }
+                }
+
+                // AI scores
+                if (this.ball.x < 0) {
+                    this.resetBall();
+                }
+            }
+
+            /**
+             * Reset the ball position
+             */
+            resetBall() {
+                this.ball.x = this.canvas.width / 2;
+                this.ball.y = this.canvas.height / 2;
+
+                // Randomize direction slightly
+                this.ball.dx = (Math.random() > 0.5 ? 5 : -5) * (1 + Math.random() * 0.2);
+                this.ball.dy = (Math.random() > 0.5 ? 3 : -3) * (1 + Math.random() * 0.2);
+            }
+
+            /**
+             * Draw game elements
+             */
+            drawGame() {
+                // Clear canvas
+                this.ctx.fillStyle = '#0f1428';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Draw center line
+                this.ctx.beginPath();
+                this.ctx.setLineDash([10, 10]);
+                this.ctx.moveTo(this.canvas.width / 2, 0);
+                this.ctx.lineTo(this.canvas.width / 2, this.canvas.height);
+                this.ctx.strokeStyle = '#FFFFFF';
+                this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+                this.ctx.setLineDash([]);
+
+                // Draw player paddle
+                this.ctx.fillStyle = '#4CAF50';
+                this.ctx.fillRect(this.paddle.x, this.paddle.y, this.paddle.width, this.paddle.height);
+
+                // Draw AI paddle
+                this.ctx.fillStyle = '#F44336';
+                this.ctx.fillRect(this.aiPaddle.x, this.aiPaddle.y, this.aiPaddle.width, this.aiPaddle.height);
+
+                // Draw ball
+                this.ctx.beginPath();
+                this.ctx.arc(this.ball.x, this.ball.y, this.ball.radius, 0, Math.PI * 2);
+                this.ctx.fillStyle = '#f8bc34';
+                this.ctx.fill();
+                this.ctx.closePath();
+
+                // Draw score
+                this.ctx.font = '24px Arial';
+                this.ctx.fillStyle = '#FFFFFF';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(this.score, this.canvas.width / 4, 30);
+
+                // Draw AI score (always 0 for now)
+                this.ctx.fillText('0', (this.canvas.width / 4) * 3, 30);
+            }
+
+            /**
+             * Update score display
+             */
+            updateScore() {
+                if (this.scoreDisplay) {
+                    this.scoreDisplay.textContent = this.score;
+                }
+
+                // Update game framework score
+                if (this.gameFramework) {
+                    this.gameFramework.setScore(this.score);
+                }
+            }
+
+            /**
+             * Update timer display
+             */
+            updateTimer() {
+                this.gameTime++;
+                const minutes = Math.floor(this.gameTime / 60);
+                const seconds = this.gameTime % 60;
+                const formattedTime = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+                if (this.timeDisplay) {
+                    this.timeDisplay.textContent = formattedTime;
+                }
+            }
+
+            /**
+             * End the game
+             */
+            endGame() {
+                this.isRunning = false;
+                clearInterval(this.gameTimer);
+
+                // Update UI
+                this.startBtn.disabled = false;
+                this.pauseBtn.disabled = true;
+
+                // Show game over message
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                this.ctx.font = '36px Arial';
+                this.ctx.fillStyle = '#F8BC34';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('Game Over', this.canvas.width / 2, this.canvas.height / 2 - 40);
+                this.ctx.font = '24px Arial';
+                this.ctx.fillStyle = '#FFFFFF';
+                this.ctx.fillText(`Your Score: ${this.score}`, this.canvas.width / 2, this.canvas.height / 2 + 10);
+                this.ctx.font = '20px Arial';
+                this.ctx.fillText('Press Start to play again', this.canvas.width / 2, this.canvas.height / 2 + 60);
+
+                // Submit score to the game framework
+                if (this.gameFramework) {
+                    this.gameFramework.endGame(this.score);
+                }
+            }
+        }
+
+        // Initialize the game when the window has loaded
+        window.addEventListener('load', () => {
+            const game = new PongGame();
+        });
+    </script>
+</body>
+
+</html>

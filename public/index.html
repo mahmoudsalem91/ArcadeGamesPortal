@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Arcade Games Portal</title>
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="/css/auth.css">
-    <link rel="stylesheet" href="/css/game-framework.css">
+    <!-- Direct file includes -->
+    <link rel="stylesheet" href="/css/auth.css" type="text/css">
+    <link rel="stylesheet" href="/css/game-framework.css" type="text/css">
     <style>
         * {
             box-sizing: border-box;
@@ -183,6 +183,71 @@
                 margin-top: 20px;
             }
         }
+
+        /* Global Leaderboard Styles */
+        .content-section {
+            margin: 40px 0;
+            background-color: rgba(15, 20, 40, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .section-title {
+            color: #f8bc34;
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .global-leaderboard {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+
+        .global-leaderboard th,
+        .global-leaderboard td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .global-leaderboard th {
+            background-color: rgba(248, 188, 52, 0.2);
+            color: #f8bc34;
+            font-weight: normal;
+        }
+
+        .global-leaderboard tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .global-leaderboard .rank-cell {
+            text-align: center;
+            font-weight: bold;
+            color: #f8bc34;
+        }
+
+        .global-leaderboard .score-cell {
+            font-weight: bold;
+            color: #f8bc34;
+        }
+
+        @media (max-width: 768px) {
+
+            .global-leaderboard th,
+            .global-leaderboard td {
+                padding: 8px 10px;
+                font-size: 0.9rem;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+        }
     </style>
 </head>
 
@@ -278,14 +343,98 @@
             </div>
         </div>
 
+        <!-- Adding Global Leaderboard Section -->
+        <div class="content-section">
+            <h2 class="section-title">Global Leaderboard</h2>
+            <div class="leaderboard-container">
+                <table class="global-leaderboard">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Game</th>
+                            <th>Score</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="global-leaderboard-body">
+                        <!-- Will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <footer>
             <p>Arcade Games Portal © 2025 | <a href="/profile" style="color: #8f9bba;">View Profile</a></p>
         </footer>
     </div>
 
-    <!-- Authentication scripts -->
-    <script src="/js/header.js"></script>
-    <script src="/js/auth.js"></script>
+    <!-- Direct file includes -->
+    <script src="/js/auth.js" type="application/javascript"></script>
+    <script src="/js/header.js" type="application/javascript"></script>
+    <script>
+        // Sample leaderboard data - would be fetched from API in production
+        const globalLeaderboardData = [
+            { rank: 1, player: "GameMaster", game: "Brick Breaker", score: 2150, date: "2025-03-03" },
+            { rank: 2, player: "PixelPro", game: "Snake", score: 187, date: "2025-03-05" },
+            { rank: 3, player: "ArcadeKing", game: "Flappy Bird", score: 94, date: "2025-03-08" },
+            { rank: 4, player: "RetroGamer", game: "Pong", score: 87, date: "2025-03-07" },
+            { rank: 5, player: "ClassicFan", game: "Whack-a-Mole", score: 76, date: "2025-03-04" }
+        ];
+
+        // Game icon mapping for leaderboard
+        const gameIcons = {
+            'Snake': '🐍',
+            'Pong': '🏓',
+            'Brick Breaker': '🧱',
+            'Flappy Bird': '🐦',
+            'Whack-a-Mole': '🔨',
+            'Memory Cards': '🃏'
+        };
+
+        // Populate the global leaderboard
+        document.addEventListener('DOMContentLoaded', () => {
+            populateGlobalLeaderboard();
+        });
+
+        function populateGlobalLeaderboard() {
+            const tableBody = document.getElementById('global-leaderboard-body');
+            if (!tableBody) return;
+
+            globalLeaderboardData.forEach(entry => {
+                const row = document.createElement('tr');
+
+                // Rank cell
+                const rankCell = document.createElement('td');
+                rankCell.className = 'rank-cell';
+                rankCell.textContent = entry.rank;
+                row.appendChild(rankCell);
+
+                // Player cell
+                const playerCell = document.createElement('td');
+                playerCell.textContent = entry.player;
+                row.appendChild(playerCell);
+
+                // Game cell
+                const gameCell = document.createElement('td');
+                gameCell.innerHTML = `${gameIcons[entry.game] || '🎮'} ${entry.game}`;
+                row.appendChild(gameCell);
+
+                // Score cell
+                const scoreCell = document.createElement('td');
+                scoreCell.className = 'score-cell';
+                scoreCell.textContent = entry.score;
+                row.appendChild(scoreCell);
+
+                // Date cell
+                const dateCell = document.createElement('td');
+                dateCell.textContent = entry.date;
+                row.appendChild(dateCell);
+
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
 </body>
 
 </html>
