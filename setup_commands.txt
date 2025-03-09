@@ -1,0 +1,39 @@
+# Install PM2 globally (if needed)
+sudo npm install -g pm2
+
+# Copy Apache configuration to the appropriate directory
+sudo cp apache_config.conf /etc/apache2/sites-available/wplabs.conf
+
+# Enable the site configuration
+sudo a2ensite wplabs.conf
+
+# Disable any conflicting sites (if needed)
+# sudo a2dissite survivalz.conf
+
+# Enable required Apache modules
+sudo a2enmod ssl
+sudo a2enmod rewrite
+sudo a2enmod proxy
+sudo a2enmod proxy_http
+sudo a2enmod headers
+sudo a2enmod expires
+sudo a2enmod deflate
+
+# Set up the application as a systemd service
+sudo cp arcade-games-portal.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable arcade-games-portal
+sudo systemctl start arcade-games-portal
+
+# Install MongoDB if not already installed
+# sudo apt update
+# sudo apt install -y mongodb
+
+# Restart Apache to apply changes
+sudo systemctl restart apache2
+
+# Check status of the application service
+sudo systemctl status arcade-games-portal
+
+# Check status of Apache
+sudo systemctl status apache2 

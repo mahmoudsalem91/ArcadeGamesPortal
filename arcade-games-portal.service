@@ -1,0 +1,18 @@
+[Unit]
+Description=Arcade Games Portal
+After=network.target mongodb.service
+
+[Service]
+Type=simple
+User=websrv
+WorkingDirectory=/var/www/wplabs
+ExecStart=/usr/bin/node /var/www/wplabs/dist/index.js
+Restart=on-failure
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=arcade-games-portal
+Environment=NODE_ENV=production PORT=3000
+
+[Install]
+WantedBy=multi-user.target 

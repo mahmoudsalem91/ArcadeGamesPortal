@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>User Profile - Arcade Portal</title>
+    <link rel="stylesheet" href="/css/auth.css">
+    <link rel="stylesheet" href="/css/game-framework.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #0a0e23;
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #f8bc34;
+            text-shadow: 0 2px 10px rgba(248, 188, 52, 0.3);
+        }
+
+        .user-banner {
+            background-color: rgba(15, 20, 40, 0.8);
+            border-radius: 10px;
+            border: 1px solid #f8bc34;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #2f3654;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin-right: 20px;
+            color: #f8bc34;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex-grow: 1;
+        }
+
+        .user-stats {
+            margin-top: 10px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            color: #f8bc34;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #8f9bba;
+        }
+
+        .content-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #f8bc34;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .game-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .game-card {
+            background-color: #0f1428;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .game-header {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .game-icon {
+            font-size: 2rem;
+            margin-right: 10px;
+            color: #f8bc34;
+        }
+
+        .game-name {
+            font-size: 1.2rem;
+            color: #ffffff;
+        }
+
+        .game-stats-body {
+            padding: 15px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .stat-row-label {
+            color: #8f9bba;
+        }
+
+        .stat-row-value {
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .recent-games {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .recent-games th,
+        .recent-games td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .recent-games th {
+            color: #8f9bba;
+            font-weight: normal;
+        }
+
+        .recent-games td {
+            color: #ffffff;
+        }
+
+        .recent-games tr:last-child td {
+            border-bottom: none;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            background-color: #2f3654;
+            color: #ffffff;
+            border: none;
+        }
+
+        .action-btn:hover {
+            background-color: #3f4674;
+        }
+
+        .action-btn.primary {
+            background-color: #f8bc34;
+            color: #0a0e23;
+        }
+
+        .action-btn.primary:hover {
+            background-color: #ffcf5c;
+        }
+
+        .auth-prompt {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: rgba(15, 20, 40, 0.8);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .auth-prompt p {
+            margin-bottom: 20px;
+            color: #8f9bba;
+            font-size: 1.1rem;
+        }
+
+        .guest-info {
+            margin-top: 30px;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: rgba(248, 188, 52, 0.1);
+            border: 1px solid rgba(248, 188, 52, 0.3);
+        }
+
+        .guest-info h3 {
+            color: #f8bc34;
+            margin-bottom: 10px;
+        }
+
+        .guest-info p {
+            color: #8f9bba;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .user-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .user-avatar {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+
+            .user-stats {
+                justify-content: center;
+            }
+
+            .game-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .recent-games th,
+            .recent-games td {
+                padding: 8px 5px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>User Profile</h1>
+            <div id="user-info"></div>
+        </header>
+
+        <div id="profile-content">
+            <!-- This will be filled by JavaScript based on authentication state -->
+            <div class="auth-prompt">
+                <p>Please log in or create an account to view your profile and game statistics.</p>
+                <button id="login-btn" class="action-btn primary">Login / Register</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Templates for content (hidden, used by JavaScript) -->
+    <template id="user-profile-template">
+        <div class="user-banner">
+            <div class="user-avatar">👤</div>
+            <div class="user-info">
+                <h2 id="username">Username</h2>
+                <p id="user-email">email@example.com</p>
+                <div class="user-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="total-games">0</span>
+                        <span class="stat-label">Games</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="high-score">0</span>
+                        <span class="stat-label">Best Score</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="total-time">0h</span>
+                        <span class="stat-label">Play Time</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2 class="section-title">Game Statistics</h2>
+            <div class="game-stats" id="game-stats-container">
+                <!-- Game stats cards will be inserted here -->
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2 class="section-title">Recent Games</h2>
+            <table class="recent-games">
+                <thead>
+                    <tr>
+                        <th>Game</th>
+                        <th>Date</th>
+                        <th>Score</th>
+                        <th>Duration</th>
+                    </tr>
+                </thead>
+                <tbody id="recent-games-list">
+                    <!-- Recent games will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="action-buttons">
+            <a href="/" class="action-btn">Back to Games</a>
+            <button id="logout-btn" class="action-btn">Logout</button>
+        </div>
+    </template>
+
+    <template id="guest-profile-template">
+        <div class="user-banner">
+            <div class="user-avatar">👤</div>
+            <div class="user-info">
+                <h2 id="guest-username">Guest</h2>
+                <p>Playing as guest</p>
+                <div class="user-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="guest-total-games">0</span>
+                        <span class="stat-label">Games</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="guest-high-score">0</span>
+                        <span class="stat-label">Best Score</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="guest-info">
+            <h3>Guest Mode</h3>
+            <p>You're currently playing as a guest. Your scores will be tracked during this session, but they won't be
+                permanently saved to a profile.</p>
+            <p>Create an account to keep track of your progress and compete on the global leaderboards!</p>
+            <button id="register-btn" class="action-btn primary">Create Account</button>
+        </div>
+
+        <div class="content-section">
+            <h2 class="section-title">Session Games</h2>
+            <table class="recent-games">
+                <thead>
+                    <tr>
+                        <th>Game</th>
+                        <th>Date</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody id="guest-games-list">
+                    <!-- Guest games will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="action-buttons">
+            <a href="/" class="action-btn">Back to Games</a>
+            <button id="switch-user-btn" class="action-btn">Switch User</button>
+        </div>
+    </template>
+
+    <!-- Game template for stats -->
+    <template id="game-stat-template">
+        <div class="game-card">
+            <div class="game-header">
+                <div class="game-icon">🎮</div>
+                <div class="game-name">Game Name</div>
+            </div>
+            <div class="game-stats-body">
+                <div class="stat-row">
+                    <span class="stat-row-label">Games Played</span>
+                    <span class="stat-row-value games-played">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-row-label">High Score</span>
+                    <span class="stat-row-value high-score">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-row-label">Average Score</span>
+                    <span class="stat-row-value avg-score">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-row-label">Total Time</span>
+                    <span class="stat-row-value total-time">0 min</span>
+                </div>
+                <div class="action-buttons">
+                    <a href="#" class="action-btn play-game">Play Now</a>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Scripts -->
+    <script src="/js/header.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        // Game icons mapping
+        const GAME_ICONS = {
+            'snake': '🐍',
+            'pong': '🏓',
+            'brick-breaker': '🧱',
+            'flappy-bird': '🐦',
+            'whack-a-mole': '🔨',
+            'memory-cards': '🃏',
+            'default': '🎮'
+        };
+
+        // Game names mapping
+        const GAME_NAMES = {
+            'snake': 'Snake',
+            'pong': 'Pong',
+            'brick-breaker': 'Brick Breaker',
+            'flappy-bird': 'Flappy Bird',
+            'whack-a-mole': 'Whack-a-Mole',
+            'memory-cards': 'Memory Cards'
+        };
+
+        // Sample user data (replace with real API calls)
+        const SAMPLE_USER_DATA = {
+            username: 'Player1',
+            email: 'player1@example.com',
+            stats: {
+                totalGames: 42,
+                highScore: 1250,
+                totalTime: '5h'
+            },
+            games: [
+                {
+                    id: 'snake',
+                    gamesPlayed: 15,
+                    highScore: 120,
+                    avgScore: 75,
+                    totalTime: '90 min'
+                },
+                {
+                    id: 'pong',
+                    gamesPlayed: 8,
+                    highScore: 45,
+                    avgScore: 30,
+                    totalTime: '60 min'
+                },
+                {
+                    id: 'brick-breaker',
+                    gamesPlayed: 12,
+                    highScore: 1250,
+                    avgScore: 850,
+                    totalTime: '120 min'
+                },
+                {
+                    id: 'flappy-bird',
+                    gamesPlayed: 7,
+                    highScore: 32,
+                    avgScore: 18,
+                    totalTime: '30 min'
+                }
+            ],
+            recentGames: [
+                { game: 'snake', date: '2025-03-08', score: 85, duration: '2m 30s' },
+                { game: 'brick-breaker', date: '2025-03-07', score: 950, duration: '5m 12s' },
+                { game: 'pong', date: '2025-03-07', score: 35, duration: '3m 45s' },
+                { game: 'flappy-bird', date: '2025-03-06', score: 24, duration: '1m 50s' },
+                { game: 'snake', date: '2025-03-05', score: 65, duration: '1m 45s' }
+            ]
+        };
+
+        // Sample guest data (replace with real session data)
+        const SAMPLE_GUEST_DATA = {
+            username: 'Guest123',
+            stats: {
+                totalGames: 5,
+                highScore: 45
+            },
+            recentGames: [
+                { game: 'snake', date: '2025-03-09', score: 45 },
+                { game: 'pong', date: '2025-03-09', score: 20 },
+                { game: 'snake', date: '2025-03-09', score: 30 }
+            ]
+        };
+
+        // Profile init
+        document.addEventListener('DOMContentLoaded', () => {
+            initProfile();
+        });
+
+        /**
+         * Initialize profile
+         */
+        function initProfile() {
+            // Check authentication state
+            setTimeout(() => {
+                if (window.gameAuth) {
+                    const isAuthenticated = window.gameAuth.isAuthenticated();
+                    const userInfo = window.gameAuth.getCurrentUserInfo();
+
+                    if (isAuthenticated && userInfo) {
+                        if (userInfo.isGuest) {
+                            renderGuestProfile(SAMPLE_GUEST_DATA);
+                        } else {
+                            fetchUserProfile();
+                        }
+                    } else {
+                        // Not authenticated, show login prompt
+                        setupLoginPrompt();
+                    }
+                } else {
+                    console.warn("gameAuth not found, showing login prompt");
+                    setupLoginPrompt();
+                }
+            }, 100);
+        }
+
+        /**
+         * Setup login prompt for unauthenticated users
+         */
+        function setupLoginPrompt() {
+            const loginBtn = document.getElementById('login-btn');
+            if (loginBtn) {
+                loginBtn.addEventListener('click', () => {
+                    if (window.gameAuth) {
+                        window.gameAuth.showAuthModal();
+                    }
+                });
+            }
+        }
+
+        /**
+         * Fetch user profile data from the API
+         * For now, uses sample data
+         */
+        function fetchUserProfile() {
+            // TODO: Replace with actual API call
+            // For now, use sample data
+            renderUserProfile(SAMPLE_USER_DATA);
+        }
+
+        /**
+         * Render user profile with data
+         */
+        function renderUserProfile(userData) {
+            const profileContent = document.getElementById('profile-content');
+            const template = document.getElementById('user-profile-template');
+
+            // Clone template
+            const content = template.content.cloneNode(true);
+
+            // Populate with user data
+            content.getElementById('username').textContent = userData.username;
+            content.getElementById('user-email').textContent = userData.email;
+            content.getElementById('total-games').textContent = userData.stats.totalGames;
+            content.getElementById('high-score').textContent = userData.stats.highScore;
+            content.getElementById('total-time').textContent = userData.stats.totalTime;
+
+            // Populate game stats
+            const gameStatsContainer = content.getElementById('game-stats-container');
+            userData.games.forEach(game => {
+                const gameTemplate = document.getElementById('game-stat-template').content.cloneNode(true);
+
+                // Set game icon and name
+                gameTemplate.querySelector('.game-icon').textContent = GAME_ICONS[game.id] || GAME_ICONS['default'];
+                gameTemplate.querySelector('.game-name').textContent = GAME_NAMES[game.id] || 'Unknown Game';
+
+                // Set game stats
+                gameTemplate.querySelector('.games-played').textContent = game.gamesPlayed;
+                gameTemplate.querySelector('.high-score').textContent = game.highScore;
+                gameTemplate.querySelector('.avg-score').textContent = game.avgScore;
+                gameTemplate.querySelector('.total-time').textContent = game.totalTime;
+
+                // Set play button link
+                gameTemplate.querySelector('.play-game').href = `/games/${game.id}`;
+
+                gameStatsContainer.appendChild(gameTemplate);
+            });
+
+            // Populate recent games
+            const recentGamesList = content.getElementById('recent-games-list');
+            userData.recentGames.forEach(game => {
+                const row = document.createElement('tr');
+
+                const gameCell = document.createElement('td');
+                gameCell.textContent = GAME_NAMES[game.game] || game.game;
+                row.appendChild(gameCell);
+
+                const dateCell = document.createElement('td');
+                dateCell.textContent = game.date;
+                row.appendChild(dateCell);
+
+                const scoreCell = document.createElement('td');
+                scoreCell.textContent = game.score;
+                row.appendChild(scoreCell);
+
+                const durationCell = document.createElement('td');
+                durationCell.textContent = game.duration;
+                row.appendChild(durationCell);
+
+                recentGamesList.appendChild(row);
+            });
+
+            // Set up event listeners
+            content.getElementById('logout-btn').addEventListener('click', () => {
+                if (window.gameAuth) {
+                    // Clear auth data
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+
+                    // Reload page
+                    window.location.reload();
+                }
+            });
+
+            // Clear content and append profile
+            profileContent.innerHTML = '';
+            profileContent.appendChild(content);
+        }
+
+        /**
+         * Render guest profile with data
+         */
+        function renderGuestProfile(guestData) {
+            const profileContent = document.getElementById('profile-content');
+            const template = document.getElementById('guest-profile-template');
+
+            // Clone template
+            const content = template.content.cloneNode(true);
+
+            // Populate with guest data
+            content.getElementById('guest-username').textContent = guestData.username;
+            content.getElementById('guest-total-games').textContent = guestData.stats.totalGames;
+            content.getElementById('guest-high-score').textContent = guestData.stats.highScore;
+
+            // Populate recent games
+            const guestGamesList = content.getElementById('guest-games-list');
+            guestData.recentGames.forEach(game => {
+                const row = document.createElement('tr');
+
+                const gameCell = document.createElement('td');
+                gameCell.textContent = GAME_NAMES[game.game] || game.game;
+                row.appendChild(gameCell);
+
+                const dateCell = document.createElement('td');
+                dateCell.textContent = game.date;
+                row.appendChild(dateCell);
+
+                const scoreCell = document.createElement('td');
+                scoreCell.textContent = game.score;
+                row.appendChild(scoreCell);
+
+                guestGamesList.appendChild(row);
+            });
+
+            // Set up event listeners
+            content.getElementById('register-btn').addEventListener('click', () => {
+                if (window.gameAuth) {
+                    window.gameAuth.showAuthModal();
+                }
+            });
+
+            content.getElementById('switch-user-btn').addEventListener('click', () => {
+                if (window.gameAuth) {
+                    // Clear guest data
+                    localStorage.removeItem('guestTag');
+
+                    // Reload page
+                    window.location.reload();
+                }
+            });
+
+            // Clear content and append profile
+            profileContent.innerHTML = '';
+            profileContent.appendChild(content);
+        }
+    </script>
+</body>
+
+</html>
