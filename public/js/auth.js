@@ -24,11 +24,23 @@ let registerForm;
 let guestForm;
 let authError;
 
+// Flag to track if we've already initialized auth
+let authInitialized = false;
+
 /**
  * Initialize the authentication module
  */
 function initAuth() {
+    // Prevent double initialization
+    if (authInitialized) {
+        console.log('Auth already initialized, skipping');
+        return;
+    }
+
+    console.log('Initializing auth module');
+
     // Check for existing authentication FIRST - this must happen before anything else
+    // This sets currentUser and isGuest values
     checkAuthState();
 
     // Create auth modal if it doesn't exist
@@ -61,6 +73,8 @@ function initAuth() {
         showAuthModal();
     } else {
         console.log('User is authenticated:', isGuest ? `Guest: ${guestTag}` : `User: ${currentUser.username}`);
+        // Make sure modal is hidden if user is authenticated
+        hideAuthModal();
     }
 
     // Export methods to global gameAuth object
@@ -68,8 +82,12 @@ function initAuth() {
     window.gameAuth.getCurrentUserInfo = getCurrentUserInfo;
     window.gameAuth.submitScore = submitScore;
     window.gameAuth.showAuthModal = showAuthModal;
+    window.gameAuth.hideAuthModal = hideAuthModal;
     window.gameAuth.logout = handleLogout;
     window.gameAuth.switchUser = handleSwitchUser;
+
+    // Mark as initialized so we don't do this again
+    authInitialized = true;
 }
 
 /**
@@ -175,16 +193,32 @@ function createAuthModal() {
  * Show the authentication modal
  */
 function showAuthModal() {
-    authOverlay.style.display = 'flex';
-    document.body.style.overflow = 'hidden'; // Prevent scrolling
+    // Don't show the modal if the user is already authenticated
+    if (isAuthenticated()) {
+        console.log('User is already authenticated, not showing auth modal');
+        return;
+    }
+
+    console.log('Showing auth modal');
+    if (authOverlay) {
+        authOverlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+    } else {
+        console.error('Auth overlay not found when trying to show modal');
+    }
 }
 
 /**
  * Hide the authentication modal
  */
 function hideAuthModal() {
-    authOverlay.style.display = 'none';
-    document.body.style.overflow = ''; // Restore scrolling
+    console.log('Hiding auth modal');
+    if (authOverlay) {
+        authOverlay.style.display = 'none';
+        document.body.style.overflow = ''; // Restore scrolling
+    } else {
+        console.error('Auth overlay not found when trying to hide modal');
+    }
 }
 
 /**
@@ -397,10 +431,18 @@ function checkAuthState() {
 
     if (token && user) {
         // User is logged in
-        currentUser = JSON.parse(user);
-        isGuest = false;
-        guestTag = '';
-        console.log('Found logged in user:', currentUser.username);
+        try {
+            currentUser = JSON.parse(user);
+            isGuest = false;
+            guestTag = '';
+            console.log('Found logged in user:', currentUser.username);
+        } catch (e) {
+            console.error('Error parsing user data from localStorage:', e);
+            // Clear invalid data
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            currentUser = null;
+        }
     } else if (storedGuestTag) {
         // User is a guest
         currentUser = null;

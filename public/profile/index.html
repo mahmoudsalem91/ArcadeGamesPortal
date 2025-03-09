@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>User Profile - Arcade Portal</title>
-    <link rel="stylesheet" href="/css/auth.css">
-    <link rel="stylesheet" href="/css/game-framework.css">
+    <!-- Direct file includes -->
+    <link rel="stylesheet" href="/css/auth.css" type="text/css">
+    <link rel="stylesheet" href="/css/game-framework.css" type="text/css">
     <style>
         * {
             box-sizing: border-box;
@@ -432,9 +433,9 @@
         </div>
     </template>
 
-    <!-- Scripts -->
-    <script src="/js/header.js"></script>
-    <script src="/js/auth.js"></script>
+    <!-- Direct file includes -->
+    <script src="/js/auth.js" type="application/javascript"></script>
+    <script src="/js/header.js" type="application/javascript"></script>
     <script>
         // Game icons mapping
         const GAME_ICONS = {
@@ -528,38 +529,62 @@
          * Initialize profile
          */
         function initProfile() {
-            // Check authentication state
-            setTimeout(() => {
-                if (window.gameAuth) {
-                    const isAuthenticated = window.gameAuth.isAuthenticated();
-                    const userInfo = window.gameAuth.getCurrentUserInfo();
+            console.log('Initializing profile page');
 
-                    if (isAuthenticated && userInfo) {
-                        if (userInfo.isGuest) {
-                            renderGuestProfile(SAMPLE_GUEST_DATA);
-                        } else {
-                            fetchUserProfile();
-                        }
+            // Check authentication state - use a slightly longer timeout to ensure auth.js has initialized
+            setTimeout(() => {
+                // First check if gameAuth is available
+                if (!window.gameAuth) {
+                    console.error('gameAuth not found in window object');
+                    setupLoginPrompt();
+                    return;
+                }
+
+                console.log('Checking authentication state for profile page');
+                const isAuthenticated = window.gameAuth.isAuthenticated();
+                const userInfo = window.gameAuth.getCurrentUserInfo();
+
+                console.log('Profile auth check:', {
+                    isAuthenticated,
+                    userInfo,
+                    typeof: userInfo ? typeof userInfo : 'null'
+                });
+
+                if (isAuthenticated && userInfo) {
+                    console.log('User is authenticated for profile');
+                    if (userInfo.isGuest) {
+                        console.log('Rendering guest profile for:', userInfo.username);
+                        // Update guest name in sample data
+                        const guestData = { ...SAMPLE_GUEST_DATA };
+                        guestData.username = userInfo.username;
+                        renderGuestProfile(guestData);
                     } else {
-                        // Not authenticated, show login prompt
-                        setupLoginPrompt();
+                        console.log('Rendering user profile for:', userInfo.username);
+                        // Update username in sample data
+                        const userData = { ...SAMPLE_USER_DATA };
+                        userData.username = userInfo.username;
+                        userData.email = userInfo.email || 'No email provided';
+                        fetchUserProfile(userData);
                     }
                 } else {
-                    console.warn("gameAuth not found, showing login prompt");
+                    console.log('User not authenticated, showing login prompt');
                     setupLoginPrompt();
                 }
-            }, 100);
+            }, 300); // Slightly longer timeout to ensure auth is ready
         }
 
         /**
          * Setup login prompt for unauthenticated users
          */
         function setupLoginPrompt() {
+            console.log('Setting up login prompt');
             const loginBtn = document.getElementById('login-btn');
             if (loginBtn) {
                 loginBtn.addEventListener('click', () => {
-                    if (window.gameAuth) {
+                    if (window.gameAuth && window.gameAuth.showAuthModal) {
                         window.gameAuth.showAuthModal();
+                    } else {
+                        console.error('showAuthModal function not found');
                     }
                 });
             }
@@ -569,10 +594,10 @@
          * Fetch user profile data from the API
          * For now, uses sample data
          */
-        function fetchUserProfile() {
+        function fetchUserProfile(userData) {
             // TODO: Replace with actual API call
-            // For now, use sample data
-            renderUserProfile(SAMPLE_USER_DATA);
+            // For now, use sample data with user info from auth
+            renderUserProfile(userData);
         }
 
         /**
