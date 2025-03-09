@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Coming Soon - Arcade Portal</title>
+    <!-- Direct file includes -->
+    <link rel="stylesheet" href="/css/auth.css" type="text/css">
+    <link rel="stylesheet" href="/css/game-framework.css" type="text/css">
+    <style>
+        .coming-soon-container {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .coming-soon-icon {
+            font-size: 80px;
+            margin-bottom: 30px;
+            color: #f8bc34;
+            animation: pulse 2s infinite;
+        }
+
+        .coming-soon-title {
+            font-size: 2.5rem;
+            color: #f8bc34;
+            margin-bottom: 20px;
+        }
+
+        .coming-soon-message {
+            font-size: 1.2rem;
+            color: #8f9bba;
+            max-width: 600px;
+            margin: 0 auto 30px;
+            line-height: 1.6;
+        }
+
+        .coming-soon-features {
+            background-color: rgba(15, 20, 40, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto 30px;
+            text-align: left;
+        }
+
+        .coming-soon-features h3 {
+            color: #f8bc34;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .coming-soon-features ul {
+            color: #ffffff;
+            padding-left: 30px;
+        }
+
+        .coming-soon-features li {
+            margin-bottom: 10px;
+        }
+
+        .back-btn {
+            background-color: #f8bc34;
+            color: #0a0e23;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background-color: #ffcf5c;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .coming-soon-title {
+                font-size: 2rem;
+            }
+
+            .coming-soon-message {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="game-title">Coming Soon</h1>
+            <div id="player-info" class="player-info">
+                <!-- Will be populated by game framework -->
+            </div>
+        </div>
+
+        <div class="coming-soon-container">
+            <div class="coming-soon-icon" id="game-icon">🎮</div>
+            <h2 class="coming-soon-title" id="game-title">Game Title</h2>
+            <p class="coming-soon-message">We're working hard to bring this exciting game to our arcade! Stay tuned for
+                updates and check back soon.</p>
+
+            <div class="coming-soon-features">
+                <h3>Planned Features</h3>
+                <ul id="game-features">
+                    <li>Challenging gameplay with increasing difficulty</li>
+                    <li>Beautiful graphics and animations</li>
+                    <li>Competitive global leaderboard</li>
+                    <li>Mobile-friendly controls</li>
+                    <li>Special power-ups and bonuses</li>
+                </ul>
+            </div>
+
+            <a href="/" class="back-btn">Back to Games</a>
+        </div>
+    </div>
+
+    <!-- Direct file includes -->
+    <script src="/js/auth.js" type="application/javascript"></script>
+    <script src="/js/header.js" type="application/javascript"></script>
+    <script>
+        // Get the game type from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameType = urlParams.get('game') || 'unknown';
+
+        // Game-specific content
+        const gameContent = {
+            'brick-breaker': {
+                icon: '🧱',
+                title: 'Brick Breaker',
+                features: [
+                    'Multiple levels with increasing difficulty',
+                    'Special bricks with power-ups',
+                    'Various paddle abilities to unlock',
+                    'Ball speed and trajectory control',
+                    'Level editor for creating custom challenges'
+                ]
+            },
+            'flappy-bird': {
+                icon: '🐦',
+                title: 'Flappy Bird',
+                features: [
+                    'Addictive one-touch gameplay',
+                    'Progressively challenging obstacles',
+                    'Day/night cycle with different visuals',
+                    'Different bird characters to unlock',
+                    'Achievement system for special milestones'
+                ]
+            },
+            'whack-a-mole': {
+                icon: '🔨',
+                title: 'Whack-a-Mole',
+                features: [
+                    'Fast-paced reflex testing gameplay',
+                    'Multiple difficulty levels',
+                    'Special bonus moles for extra points',
+                    'Time attack and endless modes',
+                    'Power-ups to slow down time or get multi-hit bonuses'
+                ]
+            },
+            'memory-cards': {
+                icon: '🃏',
+                title: 'Memory Cards',
+                features: [
+                    'Multiple difficulty levels with more cards',
+                    'Different card themes to unlock',
+                    'Timed challenges for extra points',
+                    'Match streaks for bonus multipliers',
+                    'Special card effects and animations'
+                ]
+            },
+            'default': {
+                icon: '🎮',
+                title: 'New Game',
+                features: [
+                    'Exciting gameplay mechanics',
+                    'Challenging levels and obstacles',
+                    'Competitive scoring system',
+                    'Mobile and desktop friendly controls',
+                    'Integration with our user accounts system'
+                ]
+            }
+        };
+
+        // Set game-specific content
+        document.addEventListener('DOMContentLoaded', () => {
+            const gameData = gameContent[gameType] || gameContent['default'];
+
+            // Update page title
+            document.title = `${gameData.title} - Coming Soon - Arcade Portal`;
+
+            // Update content
+            document.getElementById('game-icon').textContent = gameData.icon;
+            document.getElementById('game-title').textContent = gameData.title;
+
+            // Update game features
+            const featuresList = document.getElementById('game-features');
+            featuresList.innerHTML = '';
+
+            gameData.features.forEach(feature => {
+                const li = document.createElement('li');
+                li.textContent = feature;
+                featuresList.appendChild(li);
+            });
+        });
+    </script>
+</body>
+
+</html>
